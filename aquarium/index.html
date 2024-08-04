@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Aquarium Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        canvas {
+            border: 2px solid #0ff;
+            box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 30px #0ff;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let fish = [];
+        let bubbles = [];
+        let plants = [];
+        let jellyfish = [];
+
+        function setup() {
+            createCanvas(400, 300);
+            for (let i = 0; i < 5; i++) {
+                fish.push(new Fish(random() > 0.5));  // Randomly set direction
+            }
+            for (let i = 0; i < 20; i++) {
+                bubbles.push(new Bubble());
+            }
+            for (let i = 0; i < 3; i++) {
+                plants.push(new Plant(random(width), height, random(30, 80)));
+            }
+            for (let i = 0; i < 3; i++) {
+                jellyfish.push(new Jellyfish());
+            }
+        }
+
+        function draw() {
+            background(0);
+            
+            for (let plant of plants) {
+                plant.display();
+            }
+            
+            for (let bubble of bubbles) {
+                bubble.move();
+                bubble.display();
+            }
+            
+            for (let f of fish) {
+                f.move();
+                f.display();
+            }
+
+            for (let jelly of jellyfish) {
+                jelly.move();
+                jelly.display();
+            }
+        }
+
+        class Fish {
+            constructor(isRightward) {
+                this.x = isRightward ? -random(20, 40) : width + random(20, 40);
+                this.y = random(height);
+                this.size = random(20, 40);
+                this.speed = random(1, 3) * (isRightward ? 1 : -1);
+                this.color = color(random(100, 255), random(100, 255), random(100, 255));
+            }
+
+            move() {
+                this.x += this.speed;
+                if (this.speed > 0 && this.x > width + this.size) {
+                    this.x = -this.size;
+                    this.y = random(height);
+                } else if (this.speed < 0 && this.x < -this.size) {
+                    this.x = width + this.size;
+                    this.y = random(height);
+                }
+            }
+
+            display() {
+                push();
+                translate(this.x, this.y);
+                if (this.speed < 0) {
+                    scale(-1, 1);
+                }
+                noFill();
+                stroke(this.color);
+                strokeWeight(2);
+                beginShape();
+                vertex(0, 0);
+                vertex(-this.size, this.size/2);
+                vertex(-this.size * 0.8, 0);
+                vertex(-this.size, -this.size/2);
+                vertex(0, 0);
+                endShape(CLOSE);
+                pop();
+            }
+        }
+
+        class Bubble {
+            constructor() {
+                this.x = random(width);
+                this.y = height + random(20);
+                this.size = random(5, 15);
+                this.speed = random(0.5, 2);
+            }
+
+            move() {
+                this.y -= this.speed;
+                if (this.y < -this.size) {
+                    this.y = height + this.size;
+                    this.x = random(width);
+                }
+            }
+
+            display() {
+                noFill();
+                stroke(0, 255, 255);
+                strokeWeight(2);
+                ellipse(this.x, this.y, this.size);
+            }
+        }
+
+        class Plant {
+            constructor(x, y, height) {
+                this.x = x;
+                this.y = y;
+                this.height = height;
+            }
+
+            display() {
+                noFill();
+                stroke(0, 255, 0);
+                strokeWeight(2);
+                beginShape();
+                for (let i = 0; i <= this.height; i += 5) {
+                    let xOffset = sin(i * 0.1 + frameCount * 0.05) * 10;
+                    vertex(this.x + xOffset, this.y - i);
+                }
+                endShape();
+            }
+        }
+
+        class Jellyfish {
+            constructor() {
+                this.x = random(width);
+                this.y = random(height);
+                this.size = random(20, 40);
+                this.color = color(255, 0, 255);
+                this.ySpeed = random(0.5, 1.5);
+                this.xSpeed = random(-0.5, 0.5);
+                this.tentacleLength = this.size * 1.5;
+            }
+
+            move() {
+                this.y += sin(frameCount * 0.1) * this.ySpeed;
+                this.x += cos(frameCount * 0.1) * this.xSpeed;
+
+                if (this.y > height + this.size) this.y = -this.size;
+                if (this.y < -this.size) this.y = height + this.size;
+                if (this.x > width + this.size) this.x = -this.size;
+                if (this.x < -this.size) this.x = width + this.size;
+            }
+
+            display() {
+                noFill();
+                stroke(this.color);
+                strokeWeight(2);
+
+                // Draw body
+                arc(this.x, this.y, this.size, this.size, PI, TWO_PI);
+                
+                // Draw tentacles
+                for (let i = 0; i < 5; i++) {
+                    let startX = this.x - this.size/2 + (i * this.size/4);
+                    let startY = this.y;
+                    beginShape();
+                    for (let j = 0; j < this.tentacleLength; j += 5) {
+                        let xOff = sin((frameCount + j) * 0.1 + i) * 5;
+                        vertex(startX + xOff, startY + j);
+                    }
+                    endShape();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
